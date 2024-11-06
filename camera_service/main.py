@@ -11,7 +11,7 @@ import uvicorn
 from contextlib import asynccontextmanager
 
 from camera_server import CamServer
-
+from config import Camera_Service_Settings
 server = CamServer()
 
 # Инициализация буфера и блокировки для доступа к буферу
@@ -51,7 +51,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 
-@app.get("/cameras")
+@app.get(f"{Camera_Service_Settings.list_cameras}")
 async def get_camera_list():
     """
     Эндпоинт для получения списка подключённых камер с их путями.
@@ -60,7 +60,7 @@ async def get_camera_list():
     return JSONResponse(content=camera_list)
 
 
-@app.get("/cameras/{cam_index}")
+@app.get(f"{Camera_Service_Settings.image}"+"{cam_index}")
 async def get_camera_frame(cam_index: int):
     """
     Эндпоинт для получения последнего кадра от указанной камеры из буфера.
@@ -74,7 +74,7 @@ async def get_camera_frame(cam_index: int):
         return {"error": "Камера не найдена или кадр отсутствует"}
 
 
-@app.get("/cameras/{cam_index}/frame_raw")
+@app.get(f"{Camera_Service_Settings.image_raw}"+"{cam_index}")
 async def get_camera_frame_raw(cam_index: int):
     """
     Эндпоинт для получения последнего кадра от указанной камеры в виде массива numpy из буфера.
@@ -88,7 +88,7 @@ async def get_camera_frame_raw(cam_index: int):
         return JSONResponse(content={"error": "Камера не найдена или кадр отсутствует"})
 
 
-@app.post("/cameras/refresh")
+@app.post(f"{Camera_Service_Settings.refresh}")
 async def refresh_cameras(background_tasks: BackgroundTasks):
     """
     Эндпоинт для обновления списка подключённых камер.
@@ -98,4 +98,4 @@ async def refresh_cameras(background_tasks: BackgroundTasks):
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    uvicorn.run(app, host=f"{Camera_Service_Settings.root_url}", port=Camera_Service_Settings.root_port_int)

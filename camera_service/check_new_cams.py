@@ -9,9 +9,8 @@ def check_new_cams(connected_cameras: list) -> tuple:
     read_successful = True
 
     try:
-        with open('cameras.txt', 'r') as file:
+        with open('./cameras.txt', 'r') as file:
             camera_paths = [line.strip() for line in file]
-
     except FileNotFoundError:
         print("Ошибка: Файл 'cameras.txt' не найден. Проверьте правильность пути к файлу")
         read_successful = False
