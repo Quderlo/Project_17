@@ -5,6 +5,7 @@ def check_new_cams(connected_cameras: list) -> tuple:
     :return: Кортеж (список новых камер, bool, указывающий, были ли ошибки при чтении).
     """
     camera_paths = []
+    new_cameras_links = []
     read_successful = True
 
     try:
@@ -25,8 +26,10 @@ def check_new_cams(connected_cameras: list) -> tuple:
 
     connected_paths = []
     for cam in connected_cameras:
-        connected_paths += cam.link
+        connected_paths.append(cam.link)
 
-    new_cameras_links = [camera for camera in camera_paths if camera not in connected_paths]
+    for path in camera_paths:
+        if int(path) not in connected_paths:
+            new_cameras_links.append(path)
 
     return read_successful, new_cameras_links

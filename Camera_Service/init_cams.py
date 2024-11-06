@@ -8,7 +8,7 @@ def init_cams(connected_cameras: list) -> list:
     """
     Возвращает список объектов камер.
     :param connected_cameras: Список уже подключенных объектов камер.
-    :return: Возвращает список из уже подключенных камер, а также тех которые были подключены.
+    :return: Возвращает список камер которые были подключены.
     """
     read_successful, cam_paths = check_new_cams(connected_cameras)
     cam_buffer = []
@@ -22,5 +22,6 @@ def init_cams(connected_cameras: list) -> list:
     for cam in cam_buffer:
         if not cam.capture.isOpened():
             print(f'Ошибка! Камера по пути {cam.link} не была подключена.')
+            cam.release()
 
-    return connected_cameras + cam_buffer
+    return cam_buffer
