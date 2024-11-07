@@ -6,11 +6,10 @@ async def fetch_camera_list():
     """
     Асинхронная функция для запроса списка камер с сервиса камер.
     """
-    print(CS_settings.root_full_path + CS_settings.list_cameras)
     async with httpx.AsyncClient() as client:
         try:
             headers = {
-                "Content-Type": "application/json",
+                "Accept": "application/json",
             }
             response = await client.get(CS_settings.root_full_path + CS_settings.list_cameras, headers=headers)
             response.raise_for_status()  # Проверяем на ошибки HTTP-запроса
@@ -23,4 +22,3 @@ async def fetch_camera_list():
         except httpx.RequestError as e:
             print(f"Ошибка запроса: {e}")
             return {"error": "Ошибка запроса к серверу камер"}
-
