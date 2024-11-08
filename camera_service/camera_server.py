@@ -1,4 +1,6 @@
 import os
+import re
+
 import cv2
 import numpy as np
 from init_cams import init_cams
@@ -55,9 +57,22 @@ class CamServer:
 
     def get_camera_list(self):
         """
-        Возвращает список камер с их индексами и путями.
+        Возвращает список камер с их индексами и путями, содержащими только IP и порт.
         """
-        return [{"index": idx, "path": cam.link} for idx, cam in enumerate(self.connected_cameras)]
+        return [
+            {
+                "index": idx,
+                "path": 'rtsp://'
+            }
+            for idx, cam in enumerate(self.connected_cameras)
+        ]
+
+    def _extract_ip_and_port(self, url: str) -> str:
+        """
+        Извлекает IP-адрес и порт из полного пути RTSP URL.
+        """
+        match = re.search(r"^rtsp://(?:\S+?@)?([\d.]+:\d+)", url)
+        return match.group(0) if match else ""
 
     def shutdown(self):
         for cam in self.connected_cameras:

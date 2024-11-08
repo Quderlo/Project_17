@@ -15,7 +15,7 @@ def init_cams(connected_cameras: list) -> list:
 
     if read_successful:
         for path in cam_paths:
-            cam_buffer.append(Camera(int(path)))
+            cam_buffer.append(Camera(path))
     else:
         print("Не удалось прочитать пути к камерам")
 

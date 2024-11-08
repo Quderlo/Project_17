@@ -28,7 +28,7 @@ def check_new_cams(connected_cameras: list) -> tuple:
         connected_paths.append(cam.link)
 
     for path in camera_paths:
-        if int(path) not in connected_paths:
+        if path not in connected_paths:
             new_cameras_links.append(path)
 
     return read_successful, new_cameras_links
