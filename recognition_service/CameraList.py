@@ -1,24 +1,32 @@
-from typing import Dict, Union
+# CameraListClient.py
+from typing import Dict, List
 from recognition_service.CameraClient import CameraClient
+from config import Camera_Service_Settings as CS_settings
 
 
 class CameraListClient(CameraClient):
     def __init__(self, host: str, port: int):
-        # Инициализация родительского класса CameraClient
         super().__init__(host, port)
 
-    async def fetch_camera_list(self) -> Union[Dict, str]:
+    def fetch_camera_list(self, existing_cameras: List[Dict]) -> List[Dict]:
         """
-        Асинхронная функция для запроса списка камер с сервиса камер.
+        Запрашивает список камер с сервера и возвращает только новые камеры.
         """
         try:
-            # Выполняем запрос на получение списка камер
-            response = await self._send_request("GET", "/cameras")
+            response = self._send_request("GET", CS_settings.list_cameras)
+            camera_list = self._decode_response(response)
+            new_cameras = []
 
-            # Декодируем ответ
-            camera_list = await self._decode_response(response)
+            # Собираем пути всех существующих камер
+            existing_paths = {cam['path'] for cam in existing_cameras}
 
-            return camera_list
+            # Проверяем, есть ли текущая камера уже в списке существующих камер
+            for camera in camera_list:
+                if camera['path'] not in existing_paths:
+                    new_cameras.append(camera)
+
+            print("Новые камеры:", new_cameras)
+            return new_cameras
         except Exception as e:
             print(f"Ошибка запроса: {e}")
-            return {"error": "Ошибка запроса к серверу камер"}
+            return []

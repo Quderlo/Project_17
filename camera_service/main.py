@@ -10,7 +10,7 @@ from fastapi.responses import StreamingResponse, JSONResponse
 import uvicorn
 from contextlib import asynccontextmanager
 
-from camera_server import CamServer
+from CamServer import CamServer
 from config import Camera_Service_Settings
 server = CamServer()
 
