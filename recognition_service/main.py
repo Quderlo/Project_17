@@ -29,7 +29,7 @@ app = FastAPI(lifespan=lifespan)
 @app.post(f"{RS_settings.refresh}")
 async def refresh_cameras(background_tasks: BackgroundTasks):
     """
-    Эндпоинт для обновления списка подключённых камер.
+    Эндпоинт для обновления списка подключённых камер.  
     """
     background_tasks.add_task(server.get_new_cameras)
     return {"status": "Камеры обновляются"}

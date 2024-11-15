@@ -14,3 +14,9 @@ class Recognition_Service_Settings:
     root_port_int = 8002
     root_full_path = 'http://' + root_url + ':' + str(root_port_int)
     refresh = '/refresh'
+
+
+class User_Config_Settings:
+    user = 'admin'
+    password = 'pgZqfq86'
+    user_password = user + ':' + password
