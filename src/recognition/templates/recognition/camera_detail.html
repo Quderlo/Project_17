@@ -1,0 +1,19 @@
+{% extends "recognition/base.html" %}
+{% block content %}
+    <h1>Детальная информация о камере</h1>
+
+    <table>
+        <tr>
+            <th>Название:</th>
+            <td>{{ camera.name }}</td>
+        </tr>
+        <tr>
+            <th>IP-адрес:</th>
+            <td>{{ camera.ip_address }}</td>
+        </tr>
+        <tr>
+            <th>Порт:</th>
+            <td>{{ camera.port }}</td>
+        </tr>
+    </table>
+{% endblock %}

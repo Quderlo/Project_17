@@ -1,0 +1,9 @@
+{% extends "recognition/base.html" %}
+{% block content %}
+    <h1>Список камер</h1>
+    <ul>
+        {% for camera in object_list %}
+            <li>{{ camera.name }} — IP: {{ camera.ip_address }}</li>
+        {% endfor %}
+    </ul>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends "recognition/base.html" %}
+{% block content %}
+    <h1>Детальная информация об авторизации камеры</h1>
+
+    <table>
+        <tr>
+            <th>Название:</th>
+            <td>{{ camera_auth.name }}</td>
+        </tr>
+        <tr>
+            <th>Имя пользователя:</th>
+            <td>{{ camera_auth.username }}</td>
+        </tr>
+        <!-- Пароль в данном случае не выводим -->
+    </table>
+{% endblock %}
