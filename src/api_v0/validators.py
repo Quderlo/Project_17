@@ -48,10 +48,10 @@ def validate_rtsp(data):
     try:
         cap = cv2.VideoCapture(rtsp_link)
         if not cap.isOpened():
-            raise serializers.ValidationError(f"Не удалось подключиться к RTSP-ссылке {rtsp_link}.")
+            raise serializers.ValidationError({'rtsp_path':f"Не удалось подключиться к RTSP-ссылке {rtsp_path}."})
         cap.release()  # Закрыть подключение к камере
     except cv2.error as e:
-        raise serializers.ValidationError(f"Ошибка при подключении к RTSP-ссылке {rtsp_link}: {str(e)}")
+        raise serializers.ValidationError({'rtsp_path':f"Ошибка при подключении к RTSP-ссылке {rtsp_path}: {str(e)}"})
 
 
 

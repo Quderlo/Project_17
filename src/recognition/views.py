@@ -10,6 +10,22 @@ class CameraListView(ListView):
     context_object_name = "cameras"
     template_name = "recognition/camera/camera_list.html"
 
+class CameraActiveListView(ListView):
+    model = Camera
+    context_object_name = "cameras"
+    template_name = "recognition/camera/camera_list.html"
+
+    def get_queryset(self):
+        return Camera.objects.filter(is_active=True)
+
+class CameraInactiveListView(ListView):
+    model = Camera
+    context_object_name = "cameras"
+    template_name = "recognition/camera/camera_list.html"
+
+    def get_queryset(self):
+        return Camera.objects.filter(is_active=False)
+
 class CameraDetailView(DetailView):
     model = Camera
     template_name = "recognition/camera/camera_detail.html"
