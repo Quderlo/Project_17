@@ -2,10 +2,19 @@ import cv2
 import requests
 from rest_framework import serializers
 
+from recognition.models import Camera
+
 
 def validate_ip_address(data):
     ip_address = data.get("ip_address")
     url = f"http://{ip_address}"
+
+    if Camera.objects.filter(ip_address=ip_address).exists():
+        raise serializers.ValidationError(
+            {"ip_address":
+                 f"Адрес {ip_address} уже зарегистрирован.",
+             }
+        )
 
     try:
         response = requests.get(url, timeout=5)
