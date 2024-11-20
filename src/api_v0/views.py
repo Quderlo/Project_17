@@ -37,3 +37,10 @@ class CameraAuthViewSet(viewsets.ModelViewSet):
             serializer.save()
             return Response(status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class CreatePeopleViewSet(viewsets.ViewSet):
+    serializer_class =
+    queryset = None
+    http_method_names = ['get', 'post', 'head', 'options', 'list']
+    permission_classes = [permissions.AllowAny]
