@@ -1,7 +1,8 @@
 import cv2
+import numpy as np
 import requests
 from rest_framework import serializers
-
+from PIL import Image
 from recognition.models import Camera
 
 
@@ -63,21 +64,71 @@ def validate_camera(data):
     return data
 
 
-# TODO: Убрать
-if __name__ == '__main__':
-    class Auth:
-        def __init__(self):
-            self.username = 'admin'
-            self.password = 'pgZqfq86'
+def custom_validate_first_name(data):
+    first_name = data.get("first_name")
+    if not first_name.isalpha():
+        raise serializers.ValidationError({'first_name': "Имя должно содержать только буквы."})
 
-    auth = Auth()
+def custom_validate_last_name(data):
+    last_name = data.get("last_name")
+    if not last_name.isalpha():
+        raise serializers.ValidationError({'last_name': "Фамилия должна содержать только буквы."})
 
-    data = {
-        'name': '',
-        'ip_address': "192.168.88.91",
-        'rtsp_path': "/live/av0",
-        'auth': auth,
-    }
+def custom_validate_middle_name(data):
+    middle_name = data.get("middle_name")
+    if middle_name and not middle_name.isalpha():
+        raise serializers.ValidationError({'middle_name': "Отчество должно содержать только буквы."})
 
-    validate_camera(data)
+def validate_photo(data):
+    photo = data.get("photo")
+    if not photo:
+        raise serializers.ValidationError({'photo': "Фото обязательно для загрузки."})
 
+    try:
+        # Конвертация фото из файла в массив OpenCV
+        image = Image.open(photo).convert('RGB')  # Открываем и конвертируем в RGB
+        image_np = np.array(image)  # Преобразуем в массив
+        gray_image = cv2.cvtColor(image_np, cv2.COLOR_RGB2GRAY)  # Переводим в оттенки серого
+
+        # Загрузка классификатора Haar Cascade
+        cascade_path = cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
+        face_cascade = cv2.CascadeClassifier(cascade_path)
+
+        if face_cascade.empty():
+            raise serializers.ValidationError({
+                'photo': "Не удалось загрузить классификатор Haar Cascade."
+                         " Повторите попытку позже или сообщите в техподдержку."
+            })
+
+        # Обнаружение лиц
+        faces = face_cascade.detectMultiScale(
+            gray_image,
+            scaleFactor=1.1,
+            minNeighbors=5,
+            minSize=(30, 30),
+            flags=cv2.CASCADE_SCALE_IMAGE
+        )
+
+        if len(faces) == 0:
+            raise serializers.ValidationError({'photo': "На фото не обнаружено лиц."})
+        if len(faces) > 1:
+            raise serializers.ValidationError({'photo': "На фото должно быть только одно лицо."})
+
+        # Получение координат области лица
+        face_coordinates = faces[0]  # Берем только первое лицо (x, y, w, h)
+        x, y, w, h = face_coordinates
+        return {
+            "x": x,
+            "y": y,
+            "width": w,
+            "height": h
+        }
+
+    except Exception as e:
+        raise serializers.ValidationError({'photo': f"Ошибка обработки изображения: {str(e)}"})
+
+def validate_people_add(data):
+    custom_validate_first_name(data)
+    custom_validate_last_name(data)
+    custom_validate_middle_name(data)
+    validate_photo(data)

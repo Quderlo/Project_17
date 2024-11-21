@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'recognition',
     'rest_framework',
     'django_bootstrap5',
+    'people',
 ]
 
 MIDDLEWARE = [

@@ -1,6 +1,10 @@
+from cmath import phase
+
 from rest_framework import serializers
+
+from people.models import Person
 from recognition.models import Camera, CameraAuth
-from api_v0.validators import validate_camera
+from api_v0.validators import validate_camera, validate_people_add
 
 
 class CameraSerializer(serializers.ModelSerializer):
@@ -75,4 +79,50 @@ class CameraAuthSerializer(serializers.ModelSerializer):
                 },
             },
         }
+
+
+class PersonAddSerializer(serializers.ModelSerializer):
+    photo = serializers.ImageField(
+        required=True,
+        write_only=True,
+        error_messages={
+            "required": "Пожалуйста, загрузите фотографию.",
+            "blank": "Фотография не может быть пустой.",
+        },
+    )
+
+
+    class Meta:
+        model = Person
+        fields = [
+            'first_name',
+            'last_name',
+            'middle_name',
+            'photo',
+        ]
+
+        extra_kwargs = {
+            "first_name": {
+                "error_messages": {
+                    "required": "Пожалуйста, введите имя.",
+                    "blank": "Имя не может быть пустым.",
+                },
+            },
+            "last_name": {
+                "error_messages": {
+                    "required": "Пожалуйста, введите фамилию.",
+                    "blank": "Фамилия не может быть пустой.",
+                },
+            },
+            "photo": {
+                "error_messages": {
+                    "required": "Пожалуйста, загрузите фотографию.",
+                    "blank": "Фотография не может быть пустой.",
+                },
+            },
+        }
+
+        def validate(self, data):
+            validate_people_add(data)
+            return data
 
