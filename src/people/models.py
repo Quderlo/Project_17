@@ -1,4 +1,8 @@
+import numpy as np
 from django.db import models
+
+from cv_dlib_models.face_encoder import FaceEncoder
+
 
 class Person(models.Model):
     """
@@ -40,3 +44,9 @@ class Person(models.Model):
 
     def __str__(self):
         return f"{self.last_name} {self.first_name} {self.middle_name or ''}".strip()
+
+    def get_face_encoding(self, photo: np.ndarray) -> None:
+        encoder = FaceEncoder()
+        self.face_encoding = encoder.get_face_encoding(photo)
+
+

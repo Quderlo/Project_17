@@ -1,9 +1,0 @@
-{% extends "recognition/camera/base.html" %}
-{% block content %}
-    <h1>Список авторизаций камер</h1>
-    <ul>
-        {% for auth in object_list %}
-            <li>{{ auth.name }} — Пользователь: {{ auth.username }}</li>
-        {% endfor %}
-    </ul>
-{% endblock %}

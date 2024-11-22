@@ -1,7 +1,6 @@
-from cmath import phase
-
 from rest_framework import serializers
 
+from cv_dlib_models.face_encoder import FaceEncoder
 from people.models import Person
 from recognition.models import Camera, CameraAuth
 from api_v0.validators import validate_camera, validate_people_add
@@ -122,7 +121,30 @@ class PersonAddSerializer(serializers.ModelSerializer):
             },
         }
 
-        def validate(self, data):
-            validate_people_add(data)
-            return data
+    def validate(self, data):
+        validate_people_add(data)
+        return data
+
+    def create(self, validated_data):
+        cropped_face = validated_data.pop('photo', None)
+
+        face_encoding = None
+        if cropped_face is not None:
+            try:
+                encoder = FaceEncoder()
+                face_encoding = encoder.get_face_encoding(cropped_face)
+            except Exception as e:
+                raise serializers.ValidationError({'photo': f"Ошибка кодирования лица: {e}"})
+
+        if face_encoding is None:
+            raise serializers.ValidationError({'photo': f'Ошибка сервера. Кодирование не удалось'})
+
+        person = Person.objects.create(
+            first_name=validated_data['first_name'],
+            last_name=validated_data['last_name'],
+            middle_name=validated_data.get('middle_name', None),
+            face_encoding=face_encoding,
+        )
+
+        return person
 

@@ -16,6 +16,6 @@ urlpatterns = [
     # path('camera-auth-list/', CameraAuthListView.as_view(), name='camera-auth-list'),
     # path('camera-auth-detail/<int:pk>/', CameraAuthDetailView.as_view(), name='camera-auth-detail'),
 
-    path('', TemplateView.as_view(template_name='recognition/camera/index.html'), name='index'),
+    path('', TemplateView.as_view(template_name='recognition/index.html'), name='index'),
 
 ]

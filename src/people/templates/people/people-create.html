@@ -1,0 +1,93 @@
+{% extends "recognition/camera/../../base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow">
+        <div class="card-body">
+            <h5 class="card-title text-center">Добавить человека</h5>
+            <form id="personForm">
+                <div class="form-row">
+                    <div class="form-group col-md-6 mt-2">
+                        <label for="firstName">Имя</label>
+                        <input type="text" class="form-control" id="firstName" placeholder="Иван" required>
+                        <div id="firstNameError" class="text-danger"></div> <!-- Место для ошибки -->
+                    </div>
+                    <div class="form-group col-md-6 mt-2">
+                        <label for="lastName">Фамилия</label>
+                        <input type="text" class="form-control" id="lastName" placeholder="Иванов" required>
+                        <div id="lastNameError" class="text-danger"></div> <!-- Место для ошибки -->
+                    </div>
+                </div>
+                <div class="form-group mt-2">
+                    <label for="middleName">Отчество</label>
+                    <input type="text" class="form-control" id="middleName" placeholder="Иванович">
+                    <div id="middleNameError" class="text-danger"></div> <!-- Место для ошибки -->
+                </div>
+                <div class="form-group mt-2">
+                    <label for="photo">Фото</label>
+                    <input type="file" class="form-control" id="photo" accept="image/*" required>
+                    <div id="photoError" class="text-danger"></div> <!-- Место для ошибки -->
+                </div>
+                <div class="text-center mt-3">
+                    <button id="submitPerson" type="button" class="btn btn-primary">Добавить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block additional_scripts %}
+<script>
+    $(document).ready(function () {
+        $('#submitPerson').click(function (event) {
+            event.preventDefault();
+
+            const formData = new FormData();
+            formData.append('first_name', $('#firstName').val());
+            formData.append('last_name', $('#lastName').val());
+            formData.append('middle_name', $('#middleName').val());
+            formData.append('photo', $('#photo')[0].files[0]);
+
+            // Очищаем все ошибки перед отправкой
+            $('.text-danger').text('');
+
+            // Отправляем AJAX-запрос
+            $.ajax({
+                url: '{% url "people-add-list" %}', // URL должен быть настроен в urls.py
+                type: 'POST',
+                processData: false,
+                contentType: false,
+                data: formData,
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                success: function (response) {
+                    console.log('Успех:', response);
+                    alert('Человек успешно добавлен.');
+                    $('#personForm')[0].reset(); // Сброс формы
+                },
+                error: function (xhr, status, error) {
+                    console.error('Ошибка:', status, error);
+
+                    // Парсим ошибки и показываем их в соответствующих полях
+                    const errors = xhr.responseJSON;
+
+                    if (errors.first_name) {
+                        $('#firstNameError').text(errors.first_name[0]);
+                    }
+                    if (errors.last_name) {
+                        $('#lastNameError').text(errors.last_name[0]);
+                    }
+                    if (errors.middle_name) {
+                        $('#middleNameError').text(errors.middle_name[0]);
+                    }
+                    if (errors.photo) {
+                        $('#photoError').text(errors.photo[0]);
+                    }
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

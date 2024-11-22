@@ -1,8 +1,8 @@
 import cv2
+import dlib
 import numpy as np
 import requests
 from rest_framework import serializers
-from PIL import Image
 from recognition.models import Camera
 
 
@@ -84,51 +84,41 @@ def validate_photo(data):
     if not photo:
         raise serializers.ValidationError({'photo': "Фото обязательно для загрузки."})
 
-    try:
-        # Конвертация фото из файла в массив OpenCV
-        image = Image.open(photo).convert('RGB')  # Открываем и конвертируем в RGB
-        image_np = np.array(image)  # Преобразуем в массив
-        gray_image = cv2.cvtColor(image_np, cv2.COLOR_RGB2GRAY)  # Переводим в оттенки серого
+    detector = dlib.get_frontal_face_detector()
 
-        # Загрузка классификатора Haar Cascade
-        cascade_path = cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
-        face_cascade = cv2.CascadeClassifier(cascade_path)
+    # Преобразование изображения в массив NumPy
+    np_arr = np.frombuffer(photo.read(), np.uint8)
+    img = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
 
-        if face_cascade.empty():
-            raise serializers.ValidationError({
-                'photo': "Не удалось загрузить классификатор Haar Cascade."
-                         " Повторите попытку позже или сообщите в техподдержку."
-            })
+    if img is None:
+        raise serializers.ValidationError({'photo': "Неверный формат изображения."})
 
-        # Обнаружение лиц
-        faces = face_cascade.detectMultiScale(
-            gray_image,
-            scaleFactor=1.1,
-            minNeighbors=5,
-            minSize=(30, 30),
-            flags=cv2.CASCADE_SCALE_IMAGE
-        )
+    # Преобразование в оттенки серого
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-        if len(faces) == 0:
-            raise serializers.ValidationError({'photo': "На фото не обнаружено лиц."})
-        if len(faces) > 1:
-            raise serializers.ValidationError({'photo': "На фото должно быть только одно лицо."})
+    # Обнаружение лиц
+    faces = detector(gray)
 
-        # Получение координат области лица
-        face_coordinates = faces[0]  # Берем только первое лицо (x, y, w, h)
-        x, y, w, h = face_coordinates
-        return {
-            "x": x,
-            "y": y,
-            "width": w,
-            "height": h
-        }
+    # Проверка на наличие лиц
+    if len(faces) == 0:
+        raise serializers.ValidationError({'photo': "На изображении не обнаружено лиц."})
 
-    except Exception as e:
-        raise serializers.ValidationError({'photo': f"Ошибка обработки изображения: {str(e)}"})
+    if len(faces) > 1:
+        raise serializers.ValidationError({'photo': 'На фото больше одного человека.'})
+
+    face = faces[0]
+    x, y, w, h = face.left(), face.top(), face.width(), face.height()
+    cropped_face = img[y:y+h, x:x+w]
+    data['photo'] = cropped_face
+
+    return data
+
+
 
 def validate_people_add(data):
     custom_validate_first_name(data)
     custom_validate_last_name(data)
     custom_validate_middle_name(data)
     validate_photo(data)
+
+

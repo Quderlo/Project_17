@@ -8,12 +8,12 @@ from recognition.models import Camera, CameraAuth
 class CameraListView(ListView):
     model = Camera
     context_object_name = "cameras"
-    template_name = "recognition/camera/camera_list.html"
+    template_name = "recognition/camera_list.html"
 
 class CameraActiveListView(ListView):
     model = Camera
     context_object_name = "cameras"
-    template_name = "recognition/camera/camera_list.html"
+    template_name = "recognition/camera_list.html"
 
     def get_queryset(self):
         return Camera.objects.filter(is_active=True)
@@ -21,21 +21,21 @@ class CameraActiveListView(ListView):
 class CameraInactiveListView(ListView):
     model = Camera
     context_object_name = "cameras"
-    template_name = "recognition/camera/camera_list.html"
+    template_name = "recognition/camera_list.html"
 
     def get_queryset(self):
         return Camera.objects.filter(is_active=False)
 
 class CameraDetailView(DetailView):
     model = Camera
-    template_name = "recognition/camera/camera_detail.html"
+    template_name = "recognition/camera_detail.html"
 
 class CameraCreateView(View):
     def get(self, request):
         camera_names = CameraAuth.objects.values('id', 'name')
         return render(
             request,
-            'recognition/camera/camera_create.html',
+            'recognition/camera_create.html',
             {'camera_names': camera_names}
         )
 
@@ -46,11 +46,11 @@ class CameraCreateView(View):
 # Представления для CameraAuth
 class CameraAuthListView(ListView):
     model = CameraAuth
-    template_name = "recognition/camera/camera_auth_list.html"
+    template_name = "recognition/camera/templates/recognition/camera_auth_list.html"
 
 class CameraAuthDetailView(DetailView):
     model = CameraAuth
-    template_name = "recognition/camera/camera_detail.html"
+    template_name = "recognition/camera/templates/recognition/camera_detail.html"
 
 class CameraAuthCreateView(CreateView):
     model = CameraAuth

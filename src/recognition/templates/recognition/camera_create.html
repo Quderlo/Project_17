@@ -1,0 +1,109 @@
+{% extends "recognition/camera/../../base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow">
+        <div class="card-body">
+            <h5 class="card-title text-center">Заполните данные</h5>
+            <form id="cameraForm">
+                <div class="form-row d-flex">
+                    <div class="form-group col-md-6 mt-2">
+                        <label for="inputHost">Хост (IP) камеры</label>
+                        <input type="text" class="form-control" id="inputHost" placeholder="192.168.0.1" required>
+                        <div id="hostError" class="text-danger"></div> <!-- Место для ошибки -->
+                    </div>
+                    <div class="form-group col-md-6 mt-2">
+                        <label for="inputPort">Порт</label>
+                        <input type="text" class="form-control" id="inputPort" placeholder="554">
+                        <div id="portError" class="text-danger"></div> <!-- Место для ошибки -->
+                    </div>
+                </div>
+                <div class="form-group mt-2">
+                    <label for="inputRtspPath">Путь до потока RTSP без указания порта и хоста</label>
+                    <input type="text" class="form-control" id="inputRtspPath" placeholder="\live\av0">
+                    <div id="rtspPathError" class="text-danger"></div> <!-- Место для ошибки -->
+                </div>
+                <div class="form-group mt-2">
+                    <label for="inputName">Имя</label>
+                    <input type="text" class="form-control" id="inputName" placeholder="Центральный вход" required>
+                    <div id="nameError" class="text-danger"></div> <!-- Место для ошибки -->
+                </div>
+                <div class="form-row mt-2">
+                    <div class="form-group col-md-4">
+                        <label for="inputAuthOption">Вариант авторизации</label>
+                        <select id="inputAuthOption" class="form-control">
+                            {% for name in camera_names %}
+                                <option value="{{ name.id }}" selected>{{ name.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <div id="authOptionError" class="text-danger"></div> <!-- Место для ошибки -->
+                    </div>
+                </div>
+                <div class="text-center mt-3">
+                    <button id="submitbutton" type="button" class="btn btn-primary">Подключить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block additional_scripts %}
+    <script>
+        $(document).ready(function() {
+            $('#submitbutton').click(function (event) {
+                event.preventDefault();
+
+                const formData = {
+                    ip_address: $('#inputHost').val(),
+                    port: $('#inputPort').val(),
+                    rtsp_path: $('#inputRtspPath').val(),
+                    name: $('#inputName').val(),
+                    auth: $('#inputAuthOption').val(),
+                };
+
+                // Очищаем все ошибки перед отправкой
+                $('.text-danger').text('');
+
+                // Отправляем AJAX-запрос
+                $.ajax({
+                    url: '{% url 'camera-add-list' %}',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(formData),
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    success: function (response) {
+                        console.log('Успех:', response);
+                        // Здесь можно добавить логику, чтобы очистить форму, если нужно
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Ошибка:', status, error);
+
+                        // Парсим ошибку и показываем сообщения в соответствующих полях
+                        const errors = xhr.responseJSON;
+
+                        // Пример того, как можно вывести ошибки:
+                        if (errors.ip_address) {
+                            $('#hostError').text(errors.ip_address[0]);
+                        }
+                        if (errors.port) {
+                            $('#portError').text(errors.port[0]);
+                        }
+                        if (errors.rtsp_path) {
+                            $('#rtspPathError').text(errors.rtsp_path[0]);
+                        }
+                        if (errors.name) {
+                            $('#nameError').text(errors.name[0]);
+                        }
+                        if (errors.auth) {
+                            $('#authOptionError').text(errors.auth[0]);
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock %}
