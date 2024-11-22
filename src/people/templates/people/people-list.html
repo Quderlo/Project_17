@@ -1,0 +1,43 @@
+{% extends "recognition/camera/../../base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-center mb-4">Список людей</h2>
+    <table class="table table-striped">
+        <thead class="thead-dark">
+            <tr>
+                <th scope="col">Имя</th>
+                <th scope="col">Фамилия</th>
+                <th scope="col">Отчество</th>
+                <th scope="col">Кодировка лица</th>
+                <th scope="col">Дата добавления</th>
+                <th scope="col">Действия</th> <!-- Новый столбец для действия -->
+            </tr>
+        </thead>
+        <tbody>
+            {% for person in persons %}
+            <tr>
+                <td>{{ person.first_name }}</td>
+                <td>{{ person.last_name }}</td>
+                <td>{{ person.middle_name|default:"Нет отчества" }}</td>
+                <td>
+                    {% if person.face_encoding %}
+                        Есть кодировка
+                    {% else %}
+                        Нет кодировки
+                    {% endif %}
+                </td>
+                <td>{{ person.created_at|date:"d-m-Y H:i" }}</td>
+                <td>
+                    <a href="{% url 'people-detail' person.pk %}" class="btn btn-warning btn-sm">Просмотр</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="text-center">Нет людей для отображения</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

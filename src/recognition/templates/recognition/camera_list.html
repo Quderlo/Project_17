@@ -13,7 +13,7 @@
                 <th scope="col">HTTP-ссылка</th>
                 <th scope="col">Статус</th>
                 <th scope="col">Дата добавления</th>
-                <th scope="col">Действия</th> <!-- Новый столбец для действия -->
+                <th scope="col">Действия</th>
             </tr>
         </thead>
         <tbody>
@@ -45,7 +45,7 @@
                 </td>
                 <td>{{ camera.created_at|date:"d-m-Y H:i" }}</td>
                 <td>
-                    <a href="{% url 'camera-detail' camera.pk %}" class="btn btn-warning btn-sm">Редактировать</a> <!-- Ссылка для редактирования -->
+                    <a href="{% url 'camera-detail' camera.pk %}" class="btn btn-warning btn-sm">Просмотр</a>
                 </td>
             </tr>
             {% empty %}

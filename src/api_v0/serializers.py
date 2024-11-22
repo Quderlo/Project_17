@@ -81,7 +81,7 @@ class CameraAuthSerializer(serializers.ModelSerializer):
 
 
 class PersonAddSerializer(serializers.ModelSerializer):
-    photo = serializers.ImageField(
+    photo = serializers.CharField(
         required=True,
         write_only=True,
         error_messages={

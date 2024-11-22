@@ -4,6 +4,7 @@ import numpy as np
 import requests
 from rest_framework import serializers
 from recognition.models import Camera
+import base64
 
 
 def validate_ip_address(data):
@@ -80,15 +81,24 @@ def custom_validate_middle_name(data):
         raise serializers.ValidationError({'middle_name': "Отчество должно содержать только буквы."})
 
 def validate_photo(data):
-    photo = data.get("photo")
-    if not photo:
+    photo_base64 = data.get("photo")
+    if not photo_base64:
         raise serializers.ValidationError({'photo': "Фото обязательно для загрузки."})
 
-    detector = dlib.get_frontal_face_detector()
+    # Декодируем строку base64 в изображение
+    try:
+        # Убираем префикс data:image/jpeg;base64, если он есть
+        if photo_base64.startswith('data:image/jpeg;base64,'):
+            photo_base64 = photo_base64.split('data:image/jpeg;base64,')[1]
 
-    # Преобразование изображения в массив NumPy
-    np_arr = np.frombuffer(photo.read(), np.uint8)
-    img = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+        # Декодируем base64 в байты
+        img_data = base64.b64decode(photo_base64)
+        nparr = np.frombuffer(img_data, np.uint8)
+
+        # Декодируем в изображение
+        img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    except Exception as e:
+        raise serializers.ValidationError({'photo': f"Ошибка при декодировании изображения: {e}"})
 
     if img is None:
         raise serializers.ValidationError({'photo': "Неверный формат изображения."})
@@ -96,6 +106,7 @@ def validate_photo(data):
     # Преобразование в оттенки серого
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
+    detector = dlib.get_frontal_face_detector()
     # Обнаружение лиц
     faces = detector(gray)
 

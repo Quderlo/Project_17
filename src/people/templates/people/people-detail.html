@@ -1,0 +1,46 @@
+{% extends "recognition/camera/../../base.html" %}
+
+{% block content %}
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">Детальная информация о человеке</h1>
+
+        <div class="card shadow">
+            <div class="card-body">
+                <table class="table table-bordered table-striped">
+                    <tbody>
+                        <tr>
+                            <th scope="row" class="font-weight-bold">Имя:</th>
+                            <td>{{ person.first_name }}</td>
+                        </tr>
+                        <tr>
+                            <th scope="row" class="font-weight-bold">Фамилия:</th>
+                            <td>{{ person.last_name }}</td>
+                        </tr>
+                        <tr>
+                            <th scope="row" class="font-weight-bold">Отчество:</th>
+                            <td>{{ person.middle_name|default:"Нет отчества" }}</td>
+                        </tr>
+                        <tr>
+                            <th scope="row" class="font-weight-bold">Кодировка лица:</th>
+                            <td>
+                                {% if person.face_encoding %}
+                                    Есть кодировка
+                                {% else %}
+                                    Нет кодировки
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row" class="font-weight-bold">Дата добавления:</th>
+                            <td>{{ person.created_at|date:"d-m-Y H:i" }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="text-center">
+                    <a href="{% url 'people-list' %}" class="btn btn-secondary">Назад</a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

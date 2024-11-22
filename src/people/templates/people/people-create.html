@@ -10,26 +10,36 @@
                     <div class="form-group col-md-6 mt-2">
                         <label for="firstName">Имя</label>
                         <input type="text" class="form-control" id="firstName" placeholder="Иван" required>
-                        <div id="firstNameError" class="text-danger"></div> <!-- Место для ошибки -->
+                        <div id="firstNameError" class="text-danger"></div>
                     </div>
                     <div class="form-group col-md-6 mt-2">
                         <label for="lastName">Фамилия</label>
                         <input type="text" class="form-control" id="lastName" placeholder="Иванов" required>
-                        <div id="lastNameError" class="text-danger"></div> <!-- Место для ошибки -->
+                        <div id="lastNameError" class="text-danger"></div>
                     </div>
                 </div>
+
                 <div class="form-group mt-2">
                     <label for="middleName">Отчество</label>
                     <input type="text" class="form-control" id="middleName" placeholder="Иванович">
-                    <div id="middleNameError" class="text-danger"></div> <!-- Место для ошибки -->
+                    <div id="middleNameError" class="text-danger"></div>
                 </div>
-                <div class="form-group mt-2">
+
+                <div class="text-center">
                     <label for="photo">Фото</label>
-                    <input type="file" class="form-control" id="photo" accept="image/*" required>
-                    <div id="photoError" class="text-danger"></div> <!-- Место для ошибки -->
+                </div>
+
+                <div id="videoContainer" class="form-group mt-2 text-center">
+                    <video id="videoElement" width="75%" height="auto" autoplay></video>
+                    <canvas id="canvas" style="display:none;"></canvas>
+                    <input type="hidden" id="photo" name="photo">
+                    <div id="photoError" class="text-danger"></div>
+                    <img id="capturedImage" style="display:none; width: 75%; margin-top: 10px;">
                 </div>
                 <div class="text-center mt-3">
-                    <button id="submitPerson" type="button" class="btn btn-primary">Добавить</button>
+                    <button type="button" id="captureButton" class="btn btn-primary mt-2">Сделать снимок</button>
+                    <button type="button" id="retakeButton" class="btn btn-warning" style="display:none;">Переснять</button>
+                    <button id="submitPerson" type="button" class="btn btn-primary" style="display:none;">Добавить</button>
                 </div>
             </form>
         </div>
@@ -40,6 +50,78 @@
 {% block additional_scripts %}
 <script>
     $(document).ready(function () {
+        const video = document.getElementById('videoElement');
+        const canvas = document.getElementById('canvas');
+        const captureButton = document.getElementById('captureButton');
+        const retakeButton = document.getElementById('retakeButton');
+        const submitButton = document.getElementById('submitPerson');
+        const photoInput = document.getElementById('photo');
+        const capturedImage = document.getElementById('capturedImage');
+        let stream = null; // Переменная для хранения потока с камеры
+
+        // Функция для старта видео потока
+        function startVideo() {
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(function(localStream) {
+                    stream = localStream;
+                    video.srcObject = stream;
+                })
+                .catch(function(error) {
+                    console.log("Ошибка доступа к камере: ", error);
+                });
+        }
+
+        // Функция для остановки видео потока
+        function stopVideo() {
+            if (stream) {
+                const tracks = stream.getTracks();
+                tracks.forEach(track => track.stop());
+            }
+        }
+
+        // Стартуем камеру
+        startVideo();
+
+        // Захват изображения с камеры
+        captureButton.addEventListener('click', function() {
+            const context = canvas.getContext('2d');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const imageData = canvas.toDataURL('image/jpeg');
+            photoInput.value = imageData; // Сохраняем изображение в скрытое поле
+
+            // Показываем снимок, скрывая видео
+            capturedImage.src = imageData;
+            capturedImage.style.display = 'block'; // Показываем картинку
+            video.style.display = 'none'; // Скрываем видео
+
+            // Показать кнопку "Переснять" и скрыть кнопку "Сделать снимок"
+            captureButton.style.display = 'none';
+            retakeButton.style.display = 'inline-block';
+            submitButton.style.display = 'inline-block'; // Показываем кнопку "Добавить"
+
+
+            // Останавливаем камеру после снятия фото
+            stopVideo();
+        });
+
+        // Переснять снимок
+        retakeButton.addEventListener('click', function() {
+            photoInput.value = ''; // Очищаем скрытое поле с изображением
+            capturedImage.style.display = 'none'; // Скрыть изображение
+
+            // Показываем видео снова
+            video.style.display = 'block';
+            startVideo(); // Возобновляем камеру
+
+            // Скрыть кнопку "Переснять" и "Добавить"
+            captureButton.style.display = 'inline-block';
+            retakeButton.style.display = 'none';
+            submitButton.style.display = 'none'; // Скрыть кнопку "Добавить"
+        });
+
+        // Обработка отправки формы
         $('#submitPerson').click(function (event) {
             event.preventDefault();
 
@@ -47,14 +129,14 @@
             formData.append('first_name', $('#firstName').val());
             formData.append('last_name', $('#lastName').val());
             formData.append('middle_name', $('#middleName').val());
-            formData.append('photo', $('#photo')[0].files[0]);
+            formData.append('photo', photoInput.value); // Используем изображение с камеры
 
             // Очищаем все ошибки перед отправкой
             $('.text-danger').text('');
 
             // Отправляем AJAX-запрос
             $.ajax({
-                url: '{% url "people-add-list" %}', // URL должен быть настроен в urls.py
+                url: '{% url "people-add-list" %}',
                 type: 'POST',
                 processData: false,
                 contentType: false,
@@ -66,11 +148,14 @@
                     console.log('Успех:', response);
                     alert('Человек успешно добавлен.');
                     $('#personForm')[0].reset(); // Сброс формы
+
+                    // Скрыть кнопки после успешной отправки
+                    captureButton.style.display = 'inline-block';
+                    retakeButton.style.display = 'none';
+                    submitButton.style.display = 'none';
                 },
                 error: function (xhr, status, error) {
                     console.error('Ошибка:', status, error);
-
-                    // Парсим ошибки и показываем их в соответствующих полях
                     const errors = xhr.responseJSON;
 
                     if (errors.first_name) {
