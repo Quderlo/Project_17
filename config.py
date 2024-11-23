@@ -20,3 +20,4 @@ class User_Config_Settings:
     user = 'admin'
     password = 'pgZqfq86'
     user_password = user + ':' + password
+

@@ -3,7 +3,7 @@ from django.urls import path
 from people.views import PeopleCreateView, PeopleListView, PeopleDetailView
 
 urlpatterns = [
-    path('people-list/', PeopleListView.as_view(), name='people-list'),
-    path('people-create/', PeopleCreateView.as_view(), name='people-create'),
-    path('people/detail/<int:pk>/', PeopleDetailView.as_view(), name='people-detail'),
+    path('person-list/', PeopleListView.as_view(), name='person-list'),
+    path('person-create/', PeopleCreateView.as_view(), name='person-create'),
+    path('person/detail/<int:pk>/', PeopleDetailView.as_view(), name='person-detail'),
 ]

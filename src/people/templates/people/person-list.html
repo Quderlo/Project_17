@@ -29,7 +29,7 @@
                 </td>
                 <td>{{ person.created_at|date:"d-m-Y H:i" }}</td>
                 <td>
-                    <a href="{% url 'people-detail' person.pk %}" class="btn btn-warning btn-sm">Просмотр</a>
+                    <a href="{% url 'person-detail' person.pk %}" class="btn btn-warning btn-sm">Просмотр</a>
                 </td>
             </tr>
             {% empty %}

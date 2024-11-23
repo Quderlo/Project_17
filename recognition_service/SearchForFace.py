@@ -2,7 +2,7 @@ import cv2
 import dlib
 import numpy as np
 
-from recognition_service.CameraClient import CameraClient
+from camera_service.CameraClient import CameraClient
 from config import Camera_Service_Settings as CS_settings
 from concurrent.futures import ThreadPoolExecutor
 

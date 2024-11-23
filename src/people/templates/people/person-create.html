@@ -7,15 +7,15 @@
             <h5 class="card-title text-center">Добавить человека</h5>
             <form id="personForm">
                 <div class="form-row">
-                    <div class="form-group col-md-6 mt-2">
-                        <label for="firstName">Имя</label>
-                        <input type="text" class="form-control" id="firstName" placeholder="Иван" required>
-                        <div id="firstNameError" class="text-danger"></div>
-                    </div>
-                    <div class="form-group col-md-6 mt-2">
+                    <div class="form-group mt-2">
                         <label for="lastName">Фамилия</label>
                         <input type="text" class="form-control" id="lastName" placeholder="Иванов" required>
                         <div id="lastNameError" class="text-danger"></div>
+                    </div>
+                    <div class="form-group mt-2">
+                        <label for="firstName">Имя</label>
+                        <input type="text" class="form-control" id="firstName" placeholder="Иван" required>
+                        <div id="firstNameError" class="text-danger"></div>
                     </div>
                 </div>
 
@@ -136,7 +136,7 @@
 
             // Отправляем AJAX-запрос
             $.ajax({
-                url: '{% url "people-add-list" %}',
+                url: '{% url "people-api-list" %}',
                 type: 'POST',
                 processData: false,
                 contentType: false,

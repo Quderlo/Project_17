@@ -1,6 +1,6 @@
 # CameraListClient.py
 from typing import Dict, List
-from recognition_service.CameraClient import CameraClient
+from camera_service.CameraClient import CameraClient
 from config import Camera_Service_Settings as CS_settings
 
 

@@ -1,12 +1,14 @@
 from rest_framework.routers import DefaultRouter
 
-from api_v0.views import CameraViewSet, CameraAuthViewSet, PersonAddViewSet
+from api_v0.views import CameraViewSet, CameraAuthViewSet, PersonViewSet, PersonSightingViewSet, CameraRegisteredViewSet
 
 router = DefaultRouter()
 
-router.register(r'camera-add', CameraViewSet, basename='camera-add')
-router.register(r'camera-auth-add', CameraAuthViewSet, basename='camera-auth-add')
-router.register(r'people-add', PersonAddViewSet, basename='people-add')
+router.register(r'camera', CameraViewSet, basename='camera-api')
+router.register(r'camera-auth', CameraAuthViewSet, basename='camera-auth-api')
+router.register(r'people', PersonViewSet, basename='people-api')
+router.register(r'person-sighting', PersonSightingViewSet, basename='person-sighting-api')
+router.register(r'camera-register', CameraRegisteredViewSet, basename='camera-register-api')
 
 urlpatterns = [
 

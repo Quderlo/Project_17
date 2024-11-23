@@ -1,12 +1,15 @@
-from rest_framework import serializers
+from rest_framework import serializers, viewsets
 
 from cv_dlib_models.face_encoder import FaceEncoder
-from people.models import Person
+from people.models import Person, PersonSighting
 from recognition.models import Camera, CameraAuth
-from api_v0.validators import validate_camera, validate_people_add
+from api_v0.validators import validate_camera, validate_people_add, validate_rtsp_link
 
 
 class CameraSerializer(serializers.ModelSerializer):
+    auth_details = serializers.SerializerMethodField()
+    rtsp_link = serializers.SerializerMethodField()
+
     class Meta:
         model = Camera
         fields = [
@@ -15,7 +18,10 @@ class CameraSerializer(serializers.ModelSerializer):
             "name",
             "rtsp_path",
             "auth",
+            "auth_details",
+            "rtsp_link",
         ]
+
         extra_kwargs = {
             "name": {
                 "error_messages": {
@@ -30,19 +36,32 @@ class CameraSerializer(serializers.ModelSerializer):
                     "invalid": "Неверный IP-адрес, или камера не доступна.",
                 },
             },
-
             "port": {
                 "error_messages": {
                     "invalid": "Порт неверный или содержит, не только числа.",
                 },
             },
-
             "rtsp_path": {
                 "error_messages": {
                     "invalid": "По данному пути не обнаружен RTSP поток."
                 }
             }
         }
+
+    def get_auth_details(self, obj):
+        if obj.auth:
+            return {
+                "username": obj.auth.username,
+                "password": obj.auth.password,
+            }
+        return None
+
+    def get_rtsp_link(self, obj):
+        """
+        Возвращает RTSP-ссылку камеры. Если RTSP-ссылка не задана,
+        она генерируется автоматически с использованием метода модели.
+        """
+        return obj.generate_rtsp_link()
 
     def validate(self, data):
         validate_camera(data)
@@ -134,7 +153,7 @@ class PersonAddSerializer(serializers.ModelSerializer):
                 encoder = FaceEncoder()
                 face_encoding = encoder.get_face_encoding(cropped_face)
             except Exception as e:
-                raise serializers.ValidationError({'photo': f"Ошибка кодирования лица: {e}"})
+                raise serializers.ValidationError({'photo': [f"{e}"]})
 
         if face_encoding is None:
             raise serializers.ValidationError({'photo': f'Ошибка сервера. Кодирование не удалось'})
@@ -148,3 +167,64 @@ class PersonAddSerializer(serializers.ModelSerializer):
 
         return person
 
+
+class PersonSightingSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор для модели PersonSighting
+    """
+
+    person = serializers.PrimaryKeyRelatedField(
+        queryset=Person.objects.all(),
+        error_messages={
+            "required": "Пожалуйста, укажите человека.",
+            "does_not_exist": "Указанный человек не найден.",
+            "invalid": "Некорректное значение для поля человека.",
+        }
+    )
+
+    class Meta:
+        model = PersonSighting
+        fields = ['person']
+
+    def validate(self, data):
+        return data
+
+
+
+class CameraRegisterSerializer(serializers.ModelSerializer):
+    rtsp_link = serializers.URLField(required=False, allow_blank=True)
+    is_active = serializers.BooleanField(read_only=True)  # скрываем поле в запросах POST
+
+    class Meta:
+        model = Camera
+        fields = [
+            "is_active",
+            "rtsp_link",
+        ]
+        extra_kwargs = {
+            'rtsp_link': {
+                'error_messages': {
+                    'required': 'RTSP-ссылка обязательна для заполнения.',
+                    'blank': 'RTSP-ссылка не может быть пустой.',
+                }
+            },
+            'is_active': {
+                'error_messages': {
+                    'required': 'Необходимо указать статус активности камеры.',
+                    'blank': 'Статус активности камеры не может быть пустым.',
+                }
+            }
+        }
+
+    def validate(self, data):
+        """
+        Валидация данных камеры. Включает валидацию rtsp_link.
+        """
+        # Вызов функции для валидации rtsp_link
+        rtsp_link = validate_rtsp_link(data, instance=self.instance)
+
+        # Применяем сгенерированную или переданную ссылку
+        data['rtsp_link'] = rtsp_link
+
+        # Возвращаем обновленные данные
+        return data

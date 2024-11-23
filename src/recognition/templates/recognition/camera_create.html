@@ -66,7 +66,7 @@
                 $('.text-danger').text('');
 
                 $.ajax({
-                    url: '{% url 'camera-add-list' %}',
+                    url: '{% url 'camera-list' %}',
                     type: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify(formData),
