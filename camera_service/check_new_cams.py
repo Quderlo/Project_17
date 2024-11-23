@@ -1,34 +1,29 @@
-def check_new_cams(connected_cameras: list) -> tuple:
+from typing import List, Tuple
+
+from camera_service.CameraClient import CameraClient
+
+
+def check_new_cams(connected_cameras: List) -> Tuple[bool, List[str]]:
     """
     Проверяем, появились ли новые камеры, которые необходимо подключить.
     :param connected_cameras: Список объектов камер, которые уже были подключены.
     :return: Кортеж (список новых камер, bool, указывающий, были ли ошибки при чтении).
     """
-    camera_paths = []
+
     new_cameras_links = []
     read_successful = True
 
     try:
-        with open('./cameras.txt', 'r') as file:
-            camera_paths = [line.strip() for line in file]
-    except FileNotFoundError:
-        print("Ошибка: Файл 'cameras.txt' не найден. Проверьте правильность пути к файлу")
-        read_successful = False
-
-    except PermissionError:
-        print("Ошибка: Недостаточно прав для доступа к файлу")
-        read_successful = False
-
+        # Запрос на получение камер через CameraClient
+        client = CameraClient(host="127.0.0.1", port=8000)  # Указывайте ваш хост и порт
+        new_cameras_links = client.get_camera_links()
     except Exception as e:
-        print(f"Произошла непредвиденная ошибка: {e}")
+        print(f"Произошла ошибка при подключении к API: {e}")
         read_successful = False
 
-    connected_paths = []
-    for cam in connected_cameras:
-        connected_paths.append(cam.link)
+    connected_paths = [cam.link for cam in connected_cameras]  # assuming `connected_cameras` has `link` field
 
-    for path in camera_paths:
-        if path not in connected_paths:
-            new_cameras_links.append(path)
+    # Фильтрация новых камер
+    new_cameras_links = [link for link in new_cameras_links if link not in connected_paths]
 
     return read_successful, new_cameras_links

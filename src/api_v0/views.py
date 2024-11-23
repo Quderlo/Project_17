@@ -75,36 +75,21 @@ class CameraRegisteredViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.AllowAny]
 
     def create(self, request, *args, **kwargs):
+        # Создаем сериализатор с данными из запроса
         serializer = self.get_serializer(data=request.data)
+
         if serializer.is_valid():
-            # Сохраняем данные камеры
-            camera = serializer.save()
+            # Получаем ссылки камер, которые переданы в запросе
+            links = serializer.validated_data.get("links")
 
-            # Устанавливаем is_active в True
-            camera.is_active = True
+            # Если ссылки были переданы, обновляем состояние камер
+            if links:
+                Camera.objects.filter(rtsp_link__in=links).update(is_active=True)
 
-            # Генерируем RTSP-ссылку, если она отсутствует
-            if not camera.rtsp_link:
-                camera.rtsp_link = camera.generate_rtsp_link()
+            # Возвращаем успешный ответ
+            return Response(status=status.HTTP_200_OK)
 
-            # Сохраняем изменения в камере
-            camera.save()
-
-            # Возвращаем успешный ответ с данными камеры
-            return Response(
-                {
-                    "message": "Камера успешно зарегистрирована.",
-                    "camera": {
-                        "ip_address": camera.ip_address,
-                        "port": camera.port,
-                        "name": camera.name,
-                        "rtsp_path": camera.rtsp_path,
-                        "rtsp_link": camera.rtsp_link,
-                        "is_active": camera.is_active,
-                    },
-                },
-                status=status.HTTP_200_OK
-            )
-
+        # Если сериализатор не прошел валидацию, возвращаем ошибки
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 

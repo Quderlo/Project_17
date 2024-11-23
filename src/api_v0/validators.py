@@ -133,22 +133,16 @@ def validate_people_add(data):
     validate_photo(data)
 
 
-def validate_rtsp_link(data, instance=None):
-    """
-    Функция для валидации RTSP-ссылки.
-    Если ссылка пустая, она будет автоматически сгенерирована.
-    """
-    rtsp_link = data.get('rtsp_link')
+def validate_rtsp_links(data):
+    rtsp_links = data.get('links')
 
-    if not rtsp_link:
-        # Если rtsp_link не передан, генерируем его
-        if instance:  # Если это уже существующая камера, используем её метод
-            return instance.generate_rtsp_link()
-        else:
-            raise serializers.ValidationError({'rtsp_link': 'Необходимо указать RTSP-ссылку.'})
+    if rtsp_links is not None:
+        for link in rtsp_links:
+            if not link.startswith('rtsp://'):
+                raise serializers.ValidationError({'rtsp_link': 'RTSP-ссылка должна начинаться с rtsp://'})
 
-    # Проверка на корректность RTSP-ссылки
-    if not rtsp_link.startswith('rtsp://'):
-        raise serializers.ValidationError({'rtsp_link': 'RTSP-ссылка должна начинаться с rtsp://'})
+            camera = Camera.objects.filter(rtsp_link=link).first()
+            if not camera:
+                raise serializers.ValidationError({'links': f'Камера с RTSP-ссылкой {link} не существует.'})
 
-    return rtsp_link
+    return data

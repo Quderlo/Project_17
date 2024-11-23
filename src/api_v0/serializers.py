@@ -3,7 +3,7 @@ from rest_framework import serializers, viewsets
 from cv_dlib_models.face_encoder import FaceEncoder
 from people.models import Person, PersonSighting
 from recognition.models import Camera, CameraAuth
-from api_v0.validators import validate_camera, validate_people_add, validate_rtsp_link
+from api_v0.validators import validate_camera, validate_people_add, validate_rtsp_links
 
 
 class CameraSerializer(serializers.ModelSerializer):
@@ -190,24 +190,24 @@ class PersonSightingSerializer(serializers.ModelSerializer):
         return data
 
 
-
 class CameraRegisterSerializer(serializers.ModelSerializer):
-    rtsp_link = serializers.URLField(required=False, allow_blank=True)
-    is_active = serializers.BooleanField(read_only=True)  # скрываем поле в запросах POST
+    rtsp_link = serializers.SerializerMethodField()
+    is_active = serializers.BooleanField(read_only=True)
+    links = serializers.ListField(
+        child=serializers.CharField(),
+        required=False,
+        write_only=True,
+        error_messages={'blank': 'Список ссылок не может быть пустым.'}
+    )
 
     class Meta:
         model = Camera
         fields = [
             "is_active",
             "rtsp_link",
+            "links",
         ]
         extra_kwargs = {
-            'rtsp_link': {
-                'error_messages': {
-                    'required': 'RTSP-ссылка обязательна для заполнения.',
-                    'blank': 'RTSP-ссылка не может быть пустой.',
-                }
-            },
             'is_active': {
                 'error_messages': {
                     'required': 'Необходимо указать статус активности камеры.',
@@ -216,15 +216,9 @@ class CameraRegisterSerializer(serializers.ModelSerializer):
             }
         }
 
+    def get_rtsp_link(self, obj):
+        return obj.generate_rtsp_link()
+
     def validate(self, data):
-        """
-        Валидация данных камеры. Включает валидацию rtsp_link.
-        """
-        # Вызов функции для валидации rtsp_link
-        rtsp_link = validate_rtsp_link(data, instance=self.instance)
-
-        # Применяем сгенерированную или переданную ссылку
-        data['rtsp_link'] = rtsp_link
-
-        # Возвращаем обновленные данные
+        validate_rtsp_links(data)
         return data
